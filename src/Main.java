@@ -10,45 +10,41 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Введите текст: ");
-        String text = scanner.nextLine();
-        System.out.print("Введите команду 'add' или 'search', для того чтобы закрыть программу напишите 'end': ");
-        String request = null;
-        HttpRequest httpRequest = null;
-        int id = 1;
-        label:
-        while (true) {
-            request = scanner.next();
+        String text = null;
+        if (args[0].equals("-s")) {
+            text = args[1];
+        }
+        if (args[2].equals("-e")) {
+            String request;
+            HttpRequest httpRequest = null;
+
+            request = args[3];
             switch (request) {
-                case "add":
+                case "add" -> {
                     String putText = """
-                            {"text":""" +"\""+ text+"\"" + "}";
+                            {"text":""" + "\"" + text + "\"" + "}";
                     httpRequest = HttpRequest.newBuilder()
-                            .uri(new URI("http://localhost:9200/test_index/_doc/" + id))
+                            .uri(new URI("http://localhost:9200/test_index/_doc/1"))
                             .header("Content-Type", "application/json")
                             .timeout(Duration.of(10, ChronoUnit.SECONDS))
                             .PUT(HttpRequest.BodyPublishers.ofString(putText))
                             .build();
-                    id++;
-                    break;
-                case "search":
-                    httpRequest = HttpRequest.newBuilder()
-                            .uri(new URI("http://localhost:9200/test_index/_search"))
-                            .timeout(Duration.of(10, ChronoUnit.SECONDS))
-                            .GET()
-                            .build();
-                    break;
-                case "end":
-                    break label;
-                default:
-                    System.out.print("Введите правильную команду, для того чтобы закрыть программу напишите 'end': ");
-                    break;
+
+                }
+                case "search" -> httpRequest = HttpRequest.newBuilder()
+                        .uri(new URI("http://localhost:9200/test_index/_search"))
+                        .timeout(Duration.of(10, ChronoUnit.SECONDS))
+                        .GET()
+                        .build();
+                default -> {
+                }
             }
             HttpResponse<String> response = HttpClient.newBuilder()
                     .build()
                     .send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.statusCode());
             System.out.println(response.body());
+
         }
     }
 }
